@@ -2,7 +2,6 @@ FROM ubuntu:24.04
 
 # Set environment variables to prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive \
-    PATH="/root/.local/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -29,14 +28,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.12 \
     python3.12-dev \
     python3.12-venv \
-    python3-pip \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Upgrade pip
-RUN python3.12 -m pip install --break-system-packages --upgrade pip setuptools wheel
+# Create and activate virtual environment
+RUN python3.12 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Now upgrade pip in the virtual environment
+RUN pip install --upgrade pip setuptools wheel
 
 # Install Python packages with Snakemake 9.x
-RUN pip3 install --break-system-packages --no-cache-dir \
+RUN pip install --no-cache-dir \
     cutadapt \
     pandas \
     "numpy>=1.21.0" \
@@ -75,7 +77,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/1.19.2/samtoo
 RUN wget -q https://github.com/fritzsedlazeck/Sniffles/archive/refs/tags/v2.3.3.tar.gz \
     && tar -xzf v2.3.3.tar.gz \
     && cd Sniffles-2.3.3 \
-    && pip3 install --break-system-packages --no-cache-dir . \
+    && pip install --no-cache-dir . \
     && cd .. \
     && rm -rf Sniffles-2.3.3 v2.3.3.tar.gz
 
@@ -97,14 +99,24 @@ RUN wget -q https://www.niehs.nih.gov/research/resources/assets/docs/artbinmount
 
 # Verify installations
 RUN echo "Verifying installations..." && \
-    python3.12 --version && \
+    echo "=== Python Version ===" && \
+    python3 --version && \
+    echo "\n=== Bioinformatics Tools ===" && \
     cutadapt --version && \
     minimap2 --version && \
     bedtools --version && \
     samtools --version && \
     sniffles --version && \
     seqkit version && \
-    python3 -c "import snakemake; print(f'snakemake: {snakemake.__version__}')"
+    art_illumina --help 2>&1 | head -n 5 && \
+    echo "\n=== Python Packages ===" && \
+    python3 -c "import pandas; print(f'pandas: {pandas.__version__}')" && \
+    python3 -c "import numpy; print(f'numpy: {numpy.__version__}')" && \
+    python3 -c "import scipy; print(f'scipy: {scipy.__version__}')" && \
+    python3 -c "import Bio; print(f'biopython: {Bio.__version__}')" && \
+    python3 -c "import matplotlib; print(f'matplotlib: {matplotlib.__version__}')" && \
+    python3 -c "import snakemake; print(f'snakemake: {snakemake.__version__}')" && \
+    python3 -c "import pytest; print(f'pytest: {pytest.__version__}')"
 
 WORKDIR /data
 
