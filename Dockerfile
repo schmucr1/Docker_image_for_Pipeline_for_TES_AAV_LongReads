@@ -32,6 +32,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     python3.12 \
     python3.12-dev \
     python3.12-venv \
+    python3.12-distutils \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
