@@ -22,12 +22,21 @@ RUN apt-get update && apt-get install -y \
     autoconf \
     libgsl-dev \
     gsl-bin \
+    pkg-config \
+    libfreetype6-dev \
+    libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
 RUN pip3 install --no-cache-dir \
     cutadapt \
-    pandas
+    pandas \
+    "numpy>=1.21.0" \
+    "scipy>=1.7.0" \
+    "biopython>=1.79" \
+    "matplotlib>=3.4.0" \
+    "snakemake>=8.0" \
+    "pytest>=7.0.0"
 
 # Install minimap2
 RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 | tar -jxvf - && \
@@ -77,6 +86,7 @@ RUN wget https://www.niehs.nih.gov/research/resources/assets/docs/artbinmountrai
 
 # Verify installations
 RUN echo "Verifying installations..." && \
+    echo "=== Bioinformatics Tools ===" && \
     cutadapt --version && \
     minimap2 --version && \
     bedtools --version && \
@@ -84,7 +94,14 @@ RUN echo "Verifying installations..." && \
     sniffles --version && \
     seqkit version && \
     art_illumina --help 2>&1 | head -n 5 && \
-    python3 -c "import pandas; print(f'pandas {pandas.__version__}')"
+    echo "=== Python Packages ===" && \
+    python3 -c "import pandas; print(f'pandas: {pandas.__version__}')" && \
+    python3 -c "import numpy; print(f'numpy: {numpy.__version__}')" && \
+    python3 -c "import scipy; print(f'scipy: {scipy.__version__}')" && \
+    python3 -c "import Bio; print(f'biopython: {Bio.__version__}')" && \
+    python3 -c "import matplotlib; print(f'matplotlib: {matplotlib.__version__}')" && \
+    python3 -c "import snakemake; print(f'snakemake: {snakemake.__version__}')" && \
+    python3 -c "import pytest; print(f'pytest: {pytest.__version__}')"
 
 # Set working directory
 WORKDIR /data
