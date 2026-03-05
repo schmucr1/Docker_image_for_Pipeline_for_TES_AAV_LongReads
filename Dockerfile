@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-dev \
     autoconf \
+    libgsl-dev \
+    gsl-bin \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
@@ -65,6 +67,14 @@ RUN wget https://github.com/shenwei356/seqkit/releases/download/v2.7.0/seqkit_li
     mv seqkit /usr/local/bin/ && \
     rm seqkit_linux_amd64.tar.gz
 
+# Install ART (ART_Illumina)
+RUN wget https://www.niehs.nih.gov/research/resources/assets/docs/artbinmountrainier2016.06.05linux64.tgz && \
+    tar -xzf artbinmountrainier2016.06.05linux64.tgz && \
+    cd art_bin_MountRainier && \
+    cp art_illumina art_454 art_SOLiD /usr/local/bin/ && \
+    cd .. && \
+    rm -rf art_bin_MountRainier artbinmountrainier2016.06.05linux64.tgz
+
 # Verify installations
 RUN echo "Verifying installations..." && \
     cutadapt --version && \
@@ -73,6 +83,7 @@ RUN echo "Verifying installations..." && \
     samtools --version && \
     sniffles --version && \
     seqkit version && \
+    art_illumina --help 2>&1 | head -n 5 && \
     python3 -c "import pandas; print(f'pandas {pandas.__version__}')"
 
 # Set working directory
