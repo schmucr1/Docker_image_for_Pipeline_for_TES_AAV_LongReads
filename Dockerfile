@@ -73,6 +73,16 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/1.19.2/samtoo
     && cd .. \
     && rm -rf samtools-1.19.2 samtools-1.19.2.tar.bz2
 
+# Install bcftools
+RUN wget -q https://github.com/samtools/bcftools/releases/download/1.19/bcftools-1.19.tar.bz2 \
+    && tar -xjf bcftools-1.19.tar.bz2 \
+    && cd bcftools-1.19 \
+    && ./configure --prefix=/usr/local \
+    && make -j$(nproc) \
+    && make install \
+    && cd .. \
+    && rm -rf bcftools-1.19 bcftools-1.19.tar.bz2
+
 # Install sniffles
 RUN wget -q https://github.com/fritzsedlazeck/Sniffles/archive/refs/tags/v2.3.3.tar.gz \
     && tar -xzf v2.3.3.tar.gz \
@@ -87,6 +97,15 @@ RUN wget -q https://github.com/shenwei356/seqkit/releases/download/v2.7.0/seqkit
     && mv seqkit /usr/local/bin/ \
     && chmod +x /usr/local/bin/seqkit \
     && rm seqkit_linux_amd64.tar.gz
+
+# Install seqtk
+RUN git clone https://github.com/lh3/seqtk.git \
+    && cd seqtk \
+    && make -j$(nproc) \
+    && cp seqtk /usr/local/bin/ \
+    && chmod +x /usr/local/bin/seqtk \
+    && cd .. \
+    && rm -rf seqtk
 
 # Install ART (ART_Illumina)
 RUN wget -q https://www.niehs.nih.gov/research/resources/assets/docs/artbinmountrainier2016.06.05linux64.tgz \
@@ -106,8 +125,10 @@ RUN echo "Verifying installations..." && \
     minimap2 --version && \
     bedtools --version && \
     samtools --version && \
+    bcftools --version && \
     sniffles --version && \
     seqkit version && \
+    seqtk 2>&1 | head -n 3 && \
     art_illumina --help 2>&1 | head -n 5 && \
     echo "\n=== Python Packages ===" && \
     python3 -c "import pandas; print(f'pandas: {pandas.__version__}')" && \
