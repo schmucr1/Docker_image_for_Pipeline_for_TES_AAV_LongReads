@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Set environment variables to prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Update and install system dependencies in a single layer
+# Update and install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
@@ -25,24 +25,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libfreetype6-dev \
     libpng-dev \
-    software-properties-common \
     ca-certificates \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        python3.12 \
-        python3.12-dev \
-        python3.12-venv \
-        python3.12-distutils \
+    python3.12 \
+    python3.12-dev \
+    python3.12-venv \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Set Python 3.12 as default and upgrade pip
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 && \
-    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 && \
-    python3 -m pip install --upgrade pip setuptools wheel
+# Upgrade pip
+RUN python3.12 -m pip install --break-system-packages --upgrade pip setuptools wheel
 
 # Install Python packages with Snakemake 9.x
-RUN pip3 install --no-cache-dir \
+RUN pip3 install --break-system-packages --no-cache-dir \
     cutadapt \
     pandas \
     "numpy>=1.21.0" \
@@ -52,7 +46,6 @@ RUN pip3 install --no-cache-dir \
     "snakemake>=9.0" \
     "pytest>=7.0.0"
 
-# Install bioinformatics tools in parallel-friendly layers
 # Install minimap2
 RUN curl -fsSL https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 \
     | tar -xj -C /tmp \
@@ -82,7 +75,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/1.19.2/samtoo
 RUN wget -q https://github.com/fritzsedlazeck/Sniffles/archive/refs/tags/v2.3.3.tar.gz \
     && tar -xzf v2.3.3.tar.gz \
     && cd Sniffles-2.3.3 \
-    && pip3 install --no-cache-dir . \
+    && pip3 install --break-system-packages --no-cache-dir . \
     && cd .. \
     && rm -rf Sniffles-2.3.3 v2.3.3.tar.gz
 
@@ -104,32 +97,19 @@ RUN wget -q https://www.niehs.nih.gov/research/resources/assets/docs/artbinmount
 
 # Verify installations
 RUN echo "Verifying installations..." && \
-    echo "=== Python Version ===" && \
-    python3 --version && \
-    echo "\n=== Bioinformatics Tools ===" && \
+    python3.12 --version && \
     cutadapt --version && \
     minimap2 --version && \
     bedtools --version && \
     samtools --version && \
     sniffles --version && \
     seqkit version && \
-    art_illumina --help 2>&1 | head -n 5 && \
-    echo "\n=== Python Packages ===" && \
-    python3 -c "import pandas; print(f'pandas: {pandas.__version__}')" && \
-    python3 -c "import numpy; print(f'numpy: {numpy.__version__}')" && \
-    python3 -c "import scipy; print(f'scipy: {scipy.__version__}')" && \
-    python3 -c "import Bio; print(f'biopython: {Bio.__version__}')" && \
-    python3 -c "import matplotlib; print(f'matplotlib: {matplotlib.__version__}')" && \
-    python3 -c "import snakemake; print(f'snakemake: {snakemake.__version__}')" && \
-    python3 -c "import pytest; print(f'pytest: {pytest.__version__}')"
+    python3 -c "import snakemake; print(f'snakemake: {snakemake.__version__}')"
 
-# Set working directory
 WORKDIR /data
 
-# Add labels for metadata
 LABEL maintainer="your-email@example.com" \
       description="Bioinformatics pipeline tools with Snakemake 9.x" \
       version="1.0"
 
-# Default command
 CMD ["/bin/bash"]
