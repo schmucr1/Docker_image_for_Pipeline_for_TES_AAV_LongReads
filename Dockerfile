@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libssl-dev \
     autoconf \
+    automake \
+    libtool \
     libgsl-dev \
     gsl-bin \
     pkg-config \
@@ -107,6 +109,17 @@ RUN git clone https://github.com/lh3/seqtk.git \
     && cd .. \
     && rm -rf seqtk
 
+# Install vsearch
+RUN wget -q https://github.com/torognes/vsearch/archive/v2.30.4.tar.gz \
+    && tar -xzf v2.30.4.tar.gz \
+    && cd vsearch-2.30.4 \
+    && ./autogen.sh \
+    && ./configure CFLAGS="-O2" CXXFLAGS="-O2" --prefix=/usr/local \
+    && make ARFLAGS="cr" -j$(nproc) \
+    && make install \
+    && cd .. \
+    && rm -rf vsearch-2.30.4 v2.30.4.tar.gz
+
 # Install ART (ART_Illumina)
 RUN wget -q https://www.niehs.nih.gov/research/resources/assets/docs/artbinmountrainier2016.06.05linux64.tgz \
     && tar -xzf artbinmountrainier2016.06.05linux64.tgz \
@@ -129,6 +142,7 @@ RUN echo "Verifying installations..." && \
     sniffles --version && \
     seqkit version && \
     seqtk 2>&1 | head -n 3 && \
+    vsearch --version && \
     art_illumina --help 2>&1 | head -n 5 && \
     echo "\n=== Python Packages ===" && \
     python3 -c "import pandas; print(f'pandas: {pandas.__version__}')" && \
