@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.12 \
     python3.12-dev \
     python3.12-venv \
+    less \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Create and activate virtual environment
@@ -50,11 +51,12 @@ RUN pip install --no-cache-dir \
     "snakemake>=9.0" \
     "pytest>=7.0.0"
 
-# Install minimap2
-RUN curl -fsSL https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 \
+# Install minimap2 2.30
+RUN curl -fsSL https://github.com/lh3/minimap2/releases/download/v2.30/minimap2-2.30_x64-linux.tar.bz2 \
     | tar -xj -C /tmp \
-    && mv /tmp/minimap2-2.26_x64-linux/minimap2 /usr/local/bin/ \
-    && rm -rf /tmp/minimap2-2.26_x64-linux
+    && mv /tmp/minimap2-2.30_x64-linux/minimap2 /usr/local/bin/ \
+    && chmod +x /usr/local/bin/minimap2 \
+    && rm -rf /tmp/minimap2-2.30_x64-linux
 
 # Install bedtools
 RUN wget -q https://github.com/arq5x/bedtools2/releases/download/v2.31.1/bedtools-2.31.1.tar.gz \
@@ -133,6 +135,8 @@ RUN wget -q https://www.niehs.nih.gov/research/resources/assets/docs/artbinmount
 RUN echo "Verifying installations..." && \
     echo "=== Python Version ===" && \
     python3 --version && \
+    echo "\n=== System Tools ===" && \
+    less --version && \
     echo "\n=== Bioinformatics Tools ===" && \
     cutadapt --version && \
     minimap2 --version && \
