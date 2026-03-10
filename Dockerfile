@@ -51,6 +51,11 @@ RUN pip install --no-cache-dir \
     "snakemake>=9.0" \
     "pytest>=7.0.0"
 
+# Install Badread
+RUN git clone https://github.com/rrwick/Badread.git \
+    && pip install --no-cache-dir ./Badread \
+    && rm -rf Badread
+
 # Install minimap2 2.30
 RUN curl -fsSL https://github.com/lh3/minimap2/releases/download/v2.30/minimap2-2.30_x64-linux.tar.bz2 \
     | tar -xj -C /tmp \
@@ -147,6 +152,7 @@ RUN echo "Verifying installations..." && \
     seqkit version && \
     seqtk 2>&1 | head -n 3 && \
     vsearch --version && \
+    badread --version && \
     art_illumina --help 2>&1 | head -n 5 && \
     echo "\n=== Python Packages ===" && \
     python3 -c "import pandas; print(f'pandas: {pandas.__version__}')" && \
